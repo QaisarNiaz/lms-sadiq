@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:lms/view/dashboard/admin.dart';
 import 'package:lms/view/dashboard/owner.dart';
-import 'package:lms/view/dashboard/student.dart';
+import 'package:lms/view/dashboard/student/student.dart';
 import 'package:lms/view/dashboard/teacher.dart';
 import 'package:lms/view/login.dart';
 import 'package:lms/view/splash.dart';
