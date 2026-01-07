@@ -21,19 +21,52 @@ class _SplashViewState extends State<SplashView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.school, color: Colors.white, size: 80),
-            SizedBox(height: 12),
-            Text(
-              'Learning Management System',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue, Colors.purple],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.school_rounded, color: Colors.white, size: 80),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'LMS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Learning Management System',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+               const SizedBox(height: 48),
+              const CircularProgressIndicator(
+                 color: Colors.white,
+                 strokeWidth: 3,
+              )
+            ],
+          ),
         ),
       ),
     );

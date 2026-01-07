@@ -4,6 +4,7 @@ import 'package:lms/model/student_model.dart';
 import 'package:lms/view/dashboard/student/examtimetable.dart';
 import 'package:lms/view/dashboard/student/fee_history.dart';
 import 'package:lms/view/dashboard/student/timetable.dart';
+import 'package:lms/view/dashboard/student/subject_details.dart';
 import 'package:lms/widgets/bottomnavbar.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -13,478 +14,673 @@ class StudentDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure controller is loaded
     final controller = Get.put(StudentController());
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        // leading: IconButton(
-        //   onPressed: Get.back,
-        //   icon: Icon(Icons.arrow_back_ios_new_outlined, color: Colors.white),
-        // ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('John Smith', style: TextStyle(fontSize: 16)),
-            Text(
-              'Admission No: 10001 • Class 4-A',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        // actions: const [
-        //   Padding(
-        //     padding: EdgeInsets.only(right: 12),
-        //     child: Icon(Icons.notifications_none),
-        //   ),
-        // ],
-      ),
+      backgroundColor: const Color(0xFFF5F7FA), // Light grey background
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Subjects
-            _sectionHeader(
-              'Subjects',
-              'View Timetable',
-              () => Get.to(TimetableScreen()),
-            ),
-            const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children:
-                    controller.subjects
-                        .map(
-                          (s) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: _subjectCard(s),
-                          ),
-                        )
-                        .toList(),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Exam Schedule
-            _sectionHeader(
-              'Exam Schedule',
-              'View All Exams',
-              () => Get.to(ExamsTimetableScreen()), // ✅ Correct VoidCallback
-            ),
-
-            const SizedBox(height: 8),
-            _examCard('Mathematics', '08:00 AM - 10:00 AM', '10 March 2024'),
-            const SizedBox(height: 8),
-            _examCard('Science', '10:30 AM - 12:30 PM', '12 March 2024'),
-
-            const SizedBox(height: 20),
-
-            /// Attendance
-            const Text(
-              'Attendance',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            _attendanceCard(controller.attendance.value),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Fees",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                GestureDetector(
-                  onTap: () => Get.to(() => FeesHistoryScreen()),
-                  child: const Text(
-                    "History",
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            /// Fees Table
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
+            _buildHeader(),
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _rowHeader(),
-                  const Divider(),
-                  ...controller.feesList.map(_feeRow),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "Academic Calendar",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 10),
-
-            Obx(
-              () => TableCalendar(
-                focusedDay: controller.selectedDate.value,
-                firstDay: DateTime(2023),
-                lastDay: DateTime(2030),
-                selectedDayPredicate:
-                    (day) => isSameDay(day, controller.selectedDate.value),
-                onDaySelected: (selected, focused) {
-                  controller.selectedDate.value = selected;
-                },
-                onPageChanged: (focused) {
-                  controller.selectedDate.value = focused;
-                },
-                eventLoader: controller.getEventsForDate,
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false, // ❌ hides "2 weeks"
-                  titleCentered: true,
-                ),
-                calendarStyle: CalendarStyle(
-                  markerDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
+                  /// Subjects Section
+                  _sectionHeader(
+                    'My Subjects',
+                    'View Timetable',
+                    () => Get.to(() => TimetableScreen()),
                   ),
-                ),
-                calendarBuilders: CalendarBuilders(
-                  markerBuilder: (context, day, events) {
-                    if (events.isEmpty) return const SizedBox.shrink();
-
-                    final event = events.first as CalendarEvent;
-
-                    return Positioned(
-                      top: 2,
-                      left: 2,
-                      right: 2,
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 180, // Increased height for better card proportion
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.subjects.length,
+                      separatorBuilder:
+                          (context, index) => const SizedBox(width: 0),
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: index == 0 ? 0 : 0,
+                            right: 16,
                           ),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).primaryColor, // 🔵 Theme blue
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            event.title,
-                            maxLines: 1, // ✅ single line
-                            softWrap: false,
-                            overflow: TextOverflow.ellipsis, // ✅ no overflow
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 8,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                          child: _subjectCard(controller.subjects[index]),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// Exam Schedule
+                  _sectionHeader(
+                    'Exam Schedule',
+                    'View All',
+                    () => Get.to(() => ExamsTimetableScreen()),
+                  ),
+                  const SizedBox(height: 16),
+                  _examCard('Mathematics', '08:00 AM - 10:00 AM', '10 Mar'),
+                  const SizedBox(height: 12),
+                  _examCard('Science', '10:30 AM - 12:30 PM', '12 Mar'),
+
+                  const SizedBox(height: 30),
+
+                  /// Performance & Attendance
+                  const Text(
+                    'Overview',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3142),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _statCard(
+                          'Attendance',
+                          '${controller.attendance.value}%',
+                          Colors.green,
+                          Icons.check_circle_outline,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _statCard(
+                          'Performance',
+                          'Good',
+                          Colors.blue,
+                          Icons.trending_up,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// Academic Calendar
+                  const Text(
+                    'Academic Calendar',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3142),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                    child: Column(
+                      children: [
+                        Obx(
+                          () => TableCalendar(
+                            focusedDay: controller.selectedDate.value,
+                            firstDay: DateTime(2023),
+                            lastDay: DateTime(2030),
+                            selectedDayPredicate:
+                                (day) => isSameDay(
+                                  day,
+                                  controller.selectedDate.value,
+                                ),
+                            onDaySelected: (selected, focused) {
+                              controller.selectedDate.value = selected;
+                            },
+                            onPageChanged: (focused) {
+                              controller.selectedDate.value = focused;
+                            },
+                            eventLoader: controller.getEventsForDate,
+                            headerStyle: const HeaderStyle(
+                              formatButtonVisible: false,
+                              titleCentered: true,
+                              titleTextStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            calendarStyle: const CalendarStyle(
+                              todayDecoration: BoxDecoration(
+                                color: Color(0xFF6C63FF),
+                                shape: BoxShape.circle,
+                              ),
+                              selectedDecoration: BoxDecoration(
+                                color: Color(0xFF2D3142),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            calendarBuilders: CalendarBuilders(
+                              markerBuilder: (context, day, events) {
+                                if (events.isEmpty)
+                                  return const SizedBox.shrink();
+                                final event = events.first as CalendarEvent;
+                                return Positioned(
+                                  bottom: 1,
+                                  child: Container(
+                                    width: 35, // constraining width
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFFF9F43,
+                                      ), // Orange accent for events
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      event.title,
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                        fontSize: 8,
+                                        color: Colors.white,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        const Divider(height: 24),
+                        // Event Details List
+                        Obx(() {
+                          final events = controller.getEventsForDate(
+                            controller.selectedDate.value,
+                          );
+                          if (events.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "No events for this day",
+                                style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            );
+                          }
+                          return Column(
+                            children:
+                                events
+                                    .map(
+                                      (event) => Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFFFF4E5,
+                                          ), // Light orange bg
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFFFE0B2),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.event_outlined,
+                                              size: 20,
+                                              color: Color(0xFFFF9F43),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                event.title,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFFE67E22),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// Fees Section
+                  _sectionHeader(
+                    'Fees Status',
+                    'History',
+                    () => Get.to(() => FeesHistoryScreen()),
+                  ),
+                  const SizedBox(height: 16),
+                  _feeOverviewCard(controller.feesList),
+
+                  const SizedBox(height: 100), // Bottom padding for nav bar
+                ],
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            /// Upcoming Events
-            // Obx(() {
-            //   final events = controller.getEventsForDate(
-            //     controller.selectedDate.value,
-            //   );
-            //   if (events.isEmpty) {
-            //     return const Text("No events");
-            //   }
-            //   return Column(
-            //     children:
-            //         events
-            //             .map(
-            //               (e) => ListTile(
-            //                 leading: const Icon(Icons.event),
-            //                 title: Text(e.title),
-            //               ),
-            //             )
-            //             .toList(),
-            //   );
-            // }),
-            PerformanceCard(
-              attendance: 85,
-              test: 70,
-              exam: 90,
-              onViewDetails: () {
-                // Get.to(() => const PerformanceDetailScreen());
-              },
-            ),
-
-            const SizedBox(height: 20),
           ],
         ),
       ),
       bottomNavigationBar: MainBottomNav(),
+      extendBody: true, // Allows content to go behind nav bar if transparent
     );
   }
-}
 
-class PerformanceCard extends StatelessWidget {
-  final int attendance;
-  final int test;
-  final int exam;
-  final VoidCallback onViewDetails;
-
-  const PerformanceCard({
-    super.key,
-    required this.attendance,
-    required this.test,
-    required this.exam,
-    required this.onViewDetails,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /// Title Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Performance",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            TextButton(
-              onPressed: onViewDetails,
-              child: const Text("View Details"),
-            ),
-          ],
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6C63FF), Color(0xFF4834D4)],
         ),
-
-        const SizedBox(height: 12),
-
-        /// Attendance
-        PerformanceProgress(
-          title: "Attendance",
-          value: attendance,
-          color: attendance > 50 ? Colors.green : Colors.red,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
         ),
-
-        const SizedBox(height: 12),
-
-        /// Test
-        PerformanceProgress(title: "Test", value: test, color: Colors.blue),
-
-        const SizedBox(height: 12),
-
-        /// Exam
-        PerformanceProgress(title: "Exam", value: exam, color: Colors.amber),
-      ],
-    );
-  }
-}
-
-class PerformanceProgress extends StatelessWidget {
-  final String title;
-  final int value;
-  final Color color;
-
-  const PerformanceProgress({
-    super.key,
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = value / 100;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /// Title + Value
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-            Text(
-              "$value / 100",
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 6),
-
-        /// Progress Bar
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 8,
-            backgroundColor: Colors.grey.shade300,
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-Widget _rowHeader() {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: const [
-      Text("Month"),
-      Text("Amount"),
-      Text("Due Date"),
-      Text("Status"),
-    ],
-  );
-}
-
-Widget _feeRow(FeeModel fee) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(fee.month),
-        Text("${fee.amount}"),
-        Text(fee.dueDate),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: fee.isPaid ? Colors.green.shade100 : Colors.red.shade100,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            fee.isPaid ? "Paid" : "Pending",
-            style: TextStyle(color: fee.isPaid ? Colors.green : Colors.red),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _sectionHeader(String title, String action, VoidCallback onTap) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(
-        title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
-      TextButton(onPressed: onTap, child: Text(action)),
-    ],
-  );
-}
-
-Widget _subjectCard(Map subject) {
-  return Card(
-    color: subject['color'],
-    elevation: 0,
-    margin: const EdgeInsets.only(right: 8),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-      side: BorderSide(color: Colors.grey, width: 1),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(subject['icon'], color: Colors.blue, size: 28),
-          const SizedBox(height: 12),
-          Text(
-            subject['name'],
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.person, size: 14),
-              const SizedBox(width: 4),
-              Text(subject['teacher']),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Welcome back,',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'John Smith',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.2),
+              //     shape: BoxShape.circle,
+              //   ),
+              //   padding: const EdgeInsets.all(8),
+              //   child: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
+              // )
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.schedule, size: 14),
-              const SizedBox(width: 4),
-              Text(subject['time']),
-            ],
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.school_outlined,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Class 4-A',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(width: 1, height: 20, color: Colors.white30),
+                const Spacer(),
+                const Text(
+                  'ID: 10001',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _examCard(String subject, String time, String date) {
-  return Card(
-    color: Colors.white, // ✅ white background
-    elevation: 0,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: ListTile(
-      title: Text(subject, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('$time$date'),
-      isThreeLine: true,
-    ),
-  );
-}
+  Widget _sectionHeader(String title, String action, VoidCallback onTap) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3142),
+          ),
+        ),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              action,
+              style: const TextStyle(
+                color: Color(0xFF6C63FF),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-Widget _attendanceCard(int percent) {
-  return Card(
-    color: Colors.white, // ✅ white background
-    elevation: 0,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
+  Widget _subjectCard(Map subject) {
+    Color baseColor = subject['color'];
+
+    return Container(
+      width: 150,
+      decoration: BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Get.to(() => SubjectDetailsScreen(subject: subject)),
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            children: [
+              // Decorative circle
+              Positioned(
+                right: -20,
+                top: -20,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white.withOpacity(0.15),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        subject['icon'],
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          subject['name'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subject['teacher'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _examCard(String subject, String time, String date) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          SizedBox(
-            height: 80,
-            width: 80,
-            child: Stack(
-              fit: StackFit.expand,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF4E5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
               children: [
-                CircularProgressIndicator(
-                  value: percent / 100,
-                  strokeWidth: 8,
-                  backgroundColor: Colors.red.shade200,
-                  valueColor: const AlwaysStoppedAnimation(Colors.green),
+                Text(
+                  date.split(' ')[0], // Day
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFF9F43),
+                  ),
                 ),
-                Center(
-                  child: Text(
-                    '$percent%',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  date.split(' ')[1].toUpperCase(), // Month
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFF9F43),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
-            child: Text(
-              'You are doing great! Keep attending classes regularly.',
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  subject,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: Colors.grey.shade500,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _statCard(String title, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3142),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _feeOverviewCard(List<FeeModel> fees) {
+    final pendingFees = fees.where((f) => !f.isPaid).toList();
+    final hasPending = pendingFees.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: hasPending ? const Color(0xFFFFEEEE) : const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: hasPending ? Colors.red.shade100 : Colors.green.shade100,
+          width: 2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              hasPending ? Icons.priority_high_rounded : Icons.check_rounded,
+              color: hasPending ? Colors.red : Colors.green,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasPending ? 'Pending Dues' : 'All Clear!',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color:
+                        hasPending
+                            ? Colors.red.shade900
+                            : Colors.green.shade900,
+                  ),
+                ),
+                Text(
+                  hasPending
+                      ? '${pendingFees.length} invoice(s) pending payment'
+                      : 'You have no outstanding fees',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color:
+                        hasPending
+                            ? Colors.red.shade700
+                            : Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: hasPending ? Colors.red.shade300 : Colors.green.shade300,
+          ),
+        ],
+      ),
+    );
+  }
 }

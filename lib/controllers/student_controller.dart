@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lms/model/student_model.dart';
+import 'package:lms/model/task_model.dart';
 
 class StudentController extends GetxController {
   var attendance = 70.obs;
@@ -308,6 +309,53 @@ class StudentController extends GetxController {
     'Follow the exam hall rules strictly.',
     'Scroll horizontally or vertically to see the full timetable.',
   ];
+
+  var tasks = <TaskModel>[
+    TaskModel(
+      id: '1',
+      subjectName: 'Mathematics',
+      title: 'Algebra Review',
+      description: 'Solve exercises 1-10 from Chapter 3 regarding Linear Equations.',
+      dueDate: DateTime.now().add(const Duration(days: 2)),
+      documentUrl: 'math_worksheet.pdf',
+    ),
+    TaskModel(
+      id: '2',
+      subjectName: 'Mathematics',
+      title: 'Geometry Project',
+      description: 'Submit your geometry project report including diagrams.',
+      dueDate: DateTime.now().subtract(const Duration(days: 1)),
+      status: 'Pending',
+    ),
+     TaskModel(
+      id: '3',
+      subjectName: 'Science',
+      title: 'Lab Report',
+      description: 'Write a report on the photosynthesis experiment.',
+      dueDate: DateTime.now().add(const Duration(days: 5)),
+    ),
+    TaskModel(
+      id: '4',
+      subjectName: 'English',
+      title: 'Essay Writing',
+      description: 'Write a 500-word essay on "Climate Change".',
+      dueDate: DateTime.now().add(const Duration(days: 3)),
+    ),
+  ].obs;
+
+  bool submitTask(String taskId) {
+    final index = tasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      tasks[index].status = 'Submitted';
+      tasks.refresh();
+      return true;
+    }
+    return false;
+  }
+
+  List<TaskModel> getTasksForSubject(String subjectName) {
+    return tasks.where((t) => t.subjectName == subjectName).toList();
+  }
 
   void openSubjects() {
     Get.snackbar('Subjects', 'Navigate to all subjects screen');
