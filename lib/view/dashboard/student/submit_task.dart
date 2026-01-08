@@ -1,101 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:lms/controllers/student_controller.dart';
 import 'package:lms/model/task_model.dart';
 
-class SubmitTaskScreen extends StatefulWidget {
+class SubmitTaskScreen extends StatelessWidget {
   final TaskModel task;
-  const SubmitTaskScreen({super.key, required this.task});
+  final StudentController controller = Get.find<StudentController>();
 
-  @override
-  State<SubmitTaskScreen> createState() => _SubmitTaskScreenState();
-}
-
-class _Attachment {
-  final String path;
-  final String name;
-  final bool isImage;
-
-  _Attachment({required this.path, required this.name, required this.isImage});
-}
-
-class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
-  final StudentController controller = Get.find();
-  final List<_Attachment> _attachedFiles = [];
-  bool _isSubmitting = false;
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() {
-        _attachedFiles.add(
-          _Attachment(path: image.path, name: image.name, isImage: true),
-        );
-      });
-    }
-  }
-
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      final file = result.files.single;
-      final isImage = [
-        'jpg',
-        'jpeg',
-        'png',
-        'webp',
-      ].contains(file.extension?.toLowerCase());
-
-      setState(() {
-        _attachedFiles.add(
-          _Attachment(
-            path: file.path ?? '', // Handle nullable path safely
-            name: file.name,
-            isImage: isImage,
-          ),
-        );
-      });
-    }
-  }
-
-  void _handleSubmit() async {
-    if (_attachedFiles.isEmpty) {
-      Get.snackbar(
-        'Attention',
-        'Please attach at least one file or image before submitting.',
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade900,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-      );
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    // Simulate network delay for effect
-    await Future.delayed(const Duration(seconds: 1));
-
-    final success = controller.submitTask(widget.task.id);
-    
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-      if (success) {
-        Get.back(); // Close screen first
-        Get.snackbar(
-          'Success', 
-          '${widget.task.title} has been submitted successfully!',
-          backgroundColor: Colors.green, 
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
-        );
-      }
-    }
+  SubmitTaskScreen({super.key, required this.task}) {
+    // Reset state when screen is created
+    controller.resetSubmission();
   }
 
   @override
@@ -145,7 +60,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          widget.task.title,
+                          task.title,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -157,7 +72,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    widget.task.description,
+                    task.description,
                     style: TextStyle(
                       color: Colors.blueGrey.shade700,
                       fontSize: 16,
@@ -195,7 +110,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
 
             // Upload Area
             GestureDetector(
-              onTap: _pickFile,
+              onTap: controller.pickFile,
               child: Container(
                 height: 160,
                 decoration: BoxDecoration(
@@ -237,13 +152,13 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   icon: Icons.camera_alt_rounded,
                   label: "Camera",
                   color: Colors.purple,
-                  onTap: _pickImage,
+                  onTap: controller.pickImage,
                 ),
                 _ActionButton(
                   icon: Icons.folder_open_rounded,
                   label: "Files",
                   color: Colors.orange,
-                  onTap: _pickFile,
+                  onTap: controller.pickFile,
                 ),
               ],
             ),
@@ -251,136 +166,147 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
             const SizedBox(height: 24),
 
             // Attachments Preview List
-            if (_attachedFiles.isNotEmpty)
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _attachedFiles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final attachment = _attachedFiles[index];
-                  return Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            height: 60,
-                            width: 60,
-                            color: Colors.grey.shade100,
-                            child:
-                                attachment.isImage && attachment.path.isNotEmpty
-                                    ? Image.file(
-                                      File(attachment.path),
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (c, o, s) =>
-                                              const Icon(Icons.broken_image),
-                                    )
-                                    : const Icon(
-                                      Icons.insert_drive_file,
-                                      color: Colors.orange,
-                                      size: 30,
-                                    ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                attachment.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+            Obx(
+              () =>
+                  controller.attachedFiles.isNotEmpty
+                      ? ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.attachedFiles.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final attachment = controller.attachedFiles[index];
+                          return Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade200),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                attachment.isImage ? "Image" : "Document",
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 12,
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    height: 60,
+                                    width: 60,
+                                    color: Colors.grey.shade100,
+                                    child:
+                                        attachment.isImage &&
+                                                attachment.path.isNotEmpty
+                                            ? Image.file(
+                                              File(attachment.path),
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (c, o, s) => const Icon(
+                                                    Icons.broken_image,
+                                                  ),
+                                            )
+                                            : const Icon(
+                                              Icons.insert_drive_file,
+                                              color: Colors.orange,
+                                              size: 30,
+                                            ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _attachedFiles.removeAt(index);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        attachment.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        attachment.isImage
+                                            ? "Image"
+                                            : "Document",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.remove_circle,
+                                    color: Colors.redAccent,
+                                  ),
+                                  onPressed:
+                                      () => controller.removeAttachment(index),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      )
+                      : const SizedBox.shrink(),
+            ),
 
             const SizedBox(height: 40),
 
             // Submit Button
             SizedBox(
               height: 60,
-              child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed:
+                      controller.isSubmitting.value
+                          ? null
+                          : () => controller.submitAssignment(task),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    elevation: 5,
+                    shadowColor: Colors.blueAccent.withOpacity(0.4),
                   ),
-                  elevation: 5,
-                  shadowColor: Colors.blueAccent.withOpacity(0.4),
-                ),
-                child:
-                    _isSubmitting
-                        ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                        : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.send_rounded, color: Colors.white),
-                            SizedBox(width: 12),
-                            Text(
-                              "Submit Assignment",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                  child:
+                      controller.isSubmitting.value
+                          ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
-                          ],
-                        ),
+                          )
+                          : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.send_rounded, color: Colors.white),
+                              SizedBox(width: 12),
+                              Text(
+                                "Submit Assignment",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                ),
               ),
-            ),
+            ),const SizedBox(height: 16),
           ],
         ),
       ),

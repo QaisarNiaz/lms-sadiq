@@ -1,7 +1,18 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lms/model/student_model.dart';
 import 'package:lms/model/task_model.dart';
+
+class Attachment {
+  final String path;
+  final String name;
+  final bool isImage;
+
+  Attachment({required this.path, required this.name, required this.isImage});
+}
 
 class StudentController extends GetxController {
   var attendance = 70.obs;
@@ -343,6 +354,91 @@ class StudentController extends GetxController {
     ),
   ].obs;
 
+
+  // Submission State
+  var attachedFiles = <Attachment>[].obs;
+  var isSubmitting = false.obs;
+
+  void resetSubmission() {
+    attachedFiles.clear();
+    isSubmitting.value = false;
+  }
+
+  Future<void> pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      attachedFiles.add(
+        Attachment(path: image.path, name: image.name, isImage: true),
+      );
+    }
+  }
+
+  Future<void> pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      final file = result.files.single;
+      final isImage = [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+      ].contains(file.extension?.toLowerCase());
+
+      attachedFiles.add(
+        Attachment(
+          path: file.path ?? '',
+          name: file.name,
+          isImage: isImage,
+        ),
+      );
+    }
+  }
+
+  void removeAttachment(int index) {
+    attachedFiles.removeAt(index);
+  }
+
+  Future<void> submitAssignment(TaskModel task) async {
+    if (attachedFiles.isEmpty) {
+      Get.snackbar(
+        'Attention',
+        'Please attach at least one file or image before submitting.',
+        backgroundColor: Colors.orange.shade100,
+        colorText: Colors.orange.shade900,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+      return;
+    }
+
+    isSubmitting.value = true;
+
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    final index = tasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) {
+      tasks[index].status = 'Submitted';
+      tasks.refresh();
+      
+      isSubmitting.value = false;
+      Get.back(); // Close screen
+      Get.snackbar(
+        'Success',
+        '${task.title} has been submitted successfully!',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+    } else {
+       isSubmitting.value = false;
+       Get.snackbar('Error', 'Task not found');
+    }
+  }
+
+  // Deprecated usage kept for compatibility if needed, but submitAssignment replaces this flow
   bool submitTask(String taskId) {
     final index = tasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {

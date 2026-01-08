@@ -251,7 +251,6 @@ class TaskCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isSubmitted ? Colors.green.shade50 : Colors.orange.shade50,
                         borderRadius: BorderRadius.circular(20),
-                        
                       ),
                       child: Row(
                         children: [
