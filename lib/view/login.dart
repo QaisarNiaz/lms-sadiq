@@ -40,14 +40,22 @@ class LoginView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.school_rounded, size: 64, color: Colors.blue),
+                  child: Image.asset(
+                    'assets/images/Logo.png',
+                    width: 70,
+                    height: 70,
+                    // color: Colors.blue,
+                  ),
+                  // Icon(Icons.school_rounded, size: 64, color: Colors.blue),
                 ),
                 const SizedBox(height: 24),
-                
-                 Card(
+
+                Card(
                   elevation: 8,
                   shadowColor: Colors.black26,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: Column(
@@ -63,22 +71,22 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                         const Text(
+                        const Text(
                           "Login to your account",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         TextField(
                           controller: emailCtrl,
                           decoration: InputDecoration(
                             labelText: 'Email',
                             hintText: 'Enter your email',
-                             prefixIcon: const Icon(Icons.email_outlined, color: Colors.blue),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: Colors.blue,
+                            ),
                             filled: true,
                             fillColor: Colors.grey.shade50,
                             border: OutlineInputBorder(
@@ -88,16 +96,19 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         TextField(
                           controller: passCtrl,
                           obscureText: true,
                           decoration: InputDecoration(
                             labelText: 'Password',
                             hintText: '••••••••',
-                            prefixIcon: const Icon(Icons.lock_outline, color: Colors.blue),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: Colors.blue,
+                            ),
                             filled: true,
-                             fillColor: Colors.grey.shade50,
+                            fillColor: Colors.grey.shade50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide.none,
@@ -105,24 +116,39 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
-                         Obx(
+
+                        Obx(
                           () => Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                               color: Colors.grey.shade50,
+                              color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: role.value,
                                 isExpanded: true,
-                                icon: const Icon(Icons.arrow_drop_down_circle_outlined, color: Colors.blue),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down_circle_outlined,
+                                  color: Colors.blue,
+                                ),
                                 items: const [
-                                  DropdownMenuItem(value: 'student', child: Text('Student')),
-                                  DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
-                                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                                  DropdownMenuItem(value: 'owner', child: Text('Owner')),
+                                  DropdownMenuItem(
+                                    value: 'student',
+                                    child: Text('Student'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'teacher',
+                                    child: Text('Teacher'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'admin',
+                                    child: Text('Admin'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'owner',
+                                    child: Text('Owner'),
+                                  ),
                                 ],
                                 onChanged: (v) => role.value = v!,
                               ),
@@ -130,24 +156,27 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         ElevatedButton(
-                          onPressed: () => controller.login(
-                            emailCtrl.text,
-                            passCtrl.text,
-                            role.value,
-                          ),
+                          onPressed:
+                              () => controller.login(
+                                emailCtrl.text,
+                                passCtrl.text,
+                                role.value,
+                              ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                             elevation: 5,
                             shadowColor: Colors.blueAccent.withOpacity(0.4),
                           ),
                           child: const Text(
                             'Login',
                             style: TextStyle(
-                              fontSize: 18, 
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),

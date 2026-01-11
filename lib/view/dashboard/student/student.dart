@@ -5,6 +5,7 @@ import 'package:lms/view/dashboard/student/examtimetable.dart';
 import 'package:lms/view/dashboard/student/fee_history.dart';
 import 'package:lms/view/dashboard/student/timetable.dart';
 import 'package:lms/view/dashboard/student/subject_details.dart';
+import 'package:lms/view/dashboard/student/attendance_screen.dart';
 import 'package:lms/widgets/bottomnavbar.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -82,11 +83,15 @@ class StudentDashboard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: _statCard(
-                          'Attendance',
-                          '${controller.attendance.value}%',
-                          Colors.green,
-                          Icons.check_circle_outline,
+                        child: InkWell(
+                          onTap: () => Get.to(() => const AttendanceScreen()),
+                          borderRadius: BorderRadius.circular(20),
+                          child: _statCard(
+                            'Attendance',
+                            '${controller.attendance.value}%',
+                            Colors.green,
+                            Icons.check_circle_outline,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),

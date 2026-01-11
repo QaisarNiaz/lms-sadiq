@@ -260,6 +260,57 @@ class StudentController extends GetxController {
           ? DateTime(2030, 12, 31)
           : now,
     );
+     _generateMockAttendance();
+  }
+
+  // Attendance Logic
+  final attendanceHistory = <DateTime, String>{}.obs; // 'P', 'A', 'L'
+
+  void _generateMockAttendance() {
+    final now = DateTime.now();
+    // Generate for last 3 months
+    for (int i = 0; i < 90; i++) {
+      final date = now.subtract(Duration(days: i));
+      if (date.weekday == 6 || date.weekday == 7) continue; // Skip weekends
+
+      // Random status
+      final rand = (date.day + date.month) % 10;
+      if (rand < 7) {
+        attendanceHistory[DateTime(date.year, date.month, date.day)] = 'P';
+      } else if (rand < 9) {
+        attendanceHistory[DateTime(date.year, date.month, date.day)] = 'A';
+      } else {
+        attendanceHistory[DateTime(date.year, date.month, date.day)] = 'L';
+      }
+    }
+    _calculateAttendanceStats();
+  }
+
+  String getAttendanceStatus(DateTime date) {
+    final key = DateTime(date.year, date.month, date.day);
+    return attendanceHistory[key] ?? '';
+  }
+
+  var presentPercentage = 0.0.obs;
+  var absentPercentage = 0.0.obs;
+  var leavePercentage = 0.0.obs;
+
+  void _calculateAttendanceStats() {
+    int p = 0;
+    int a = 0;
+    int l = 0;
+    attendanceHistory.forEach((_, status) {
+      if (status == 'P') p++;
+      else if (status == 'A') a++;
+      else if (status == 'L') l++;
+    });
+    final total = p + a + l;
+    if (total > 0) {
+      presentPercentage.value = (p / total) * 100;
+      absentPercentage.value = (a / total) * 100;
+      leavePercentage.value = (l / total) * 100;
+      attendance.value = presentPercentage.value.toInt(); // Sync with main dashboard stat
+    }
   }
 
   List<CalendarEvent> getEventsForDate(DateTime date) {

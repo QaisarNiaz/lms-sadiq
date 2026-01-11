@@ -36,10 +36,16 @@ class _SplashViewState extends State<SplashView> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.school_rounded, color: Colors.white, size: 80),
+                child: Image.asset(
+                  'assets/images/Logo.png',
+                  width: 80,
+                  height: 80,
+                  // color: Colors.blue,
+                ),
+                // const Icon(Icons.school_rounded, color: Colors.white, size: 80),
               ),
               const SizedBox(height: 24),
               const Text(
@@ -60,11 +66,11 @@ class _SplashViewState extends State<SplashView> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-               const SizedBox(height: 48),
+              const SizedBox(height: 48),
               const CircularProgressIndicator(
-                 color: Colors.white,
-                 strokeWidth: 3,
-              )
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
             ],
           ),
         ),
