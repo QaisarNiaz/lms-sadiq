@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -260,7 +259,7 @@ class StudentController extends GetxController {
           ? DateTime(2030, 12, 31)
           : now,
     );
-     _generateMockAttendance();
+    _generateMockAttendance();
   }
 
   // Attendance Logic
@@ -300,16 +299,22 @@ class StudentController extends GetxController {
     int a = 0;
     int l = 0;
     attendanceHistory.forEach((_, status) {
-      if (status == 'P') p++;
-      else if (status == 'A') a++;
-      else if (status == 'L') l++;
+      if (status == 'P') {
+        p++;
+      } else if (status == 'A')
+        // ignore: curly_braces_in_flow_control_structures
+        a++;
+      else if (status == 'L')
+        // ignore: curly_braces_in_flow_control_structures
+        l++;
     });
     final total = p + a + l;
     if (total > 0) {
       presentPercentage.value = (p / total) * 100;
       absentPercentage.value = (a / total) * 100;
       leavePercentage.value = (l / total) * 100;
-      attendance.value = presentPercentage.value.toInt(); // Sync with main dashboard stat
+      attendance.value =
+          presentPercentage.value.toInt(); // Sync with main dashboard stat
     }
   }
 
@@ -372,39 +377,41 @@ class StudentController extends GetxController {
     'Scroll horizontally or vertically to see the full timetable.',
   ];
 
-  var tasks = <TaskModel>[
-    TaskModel(
-      id: '1',
-      subjectName: 'Mathematics',
-      title: 'Algebra Review',
-      description: 'Solve exercises 1-10 from Chapter 3 regarding Linear Equations.',
-      dueDate: DateTime.now().add(const Duration(days: 2)),
-      documentUrl: 'math_worksheet.pdf',
-    ),
-    TaskModel(
-      id: '2',
-      subjectName: 'Mathematics',
-      title: 'Geometry Project',
-      description: 'Submit your geometry project report including diagrams.',
-      dueDate: DateTime.now().subtract(const Duration(days: 1)),
-      status: 'Pending',
-    ),
-     TaskModel(
-      id: '3',
-      subjectName: 'Science',
-      title: 'Lab Report',
-      description: 'Write a report on the photosynthesis experiment.',
-      dueDate: DateTime.now().add(const Duration(days: 5)),
-    ),
-    TaskModel(
-      id: '4',
-      subjectName: 'English',
-      title: 'Essay Writing',
-      description: 'Write a 500-word essay on "Climate Change".',
-      dueDate: DateTime.now().add(const Duration(days: 3)),
-    ),
-  ].obs;
-
+  var tasks =
+      <TaskModel>[
+        TaskModel(
+          id: '1',
+          subjectName: 'Mathematics',
+          title: 'Algebra Review',
+          description:
+              'Solve exercises 1-10 from Chapter 3 regarding Linear Equations.',
+          dueDate: DateTime.now().add(const Duration(days: 2)),
+          documentUrl: 'math_worksheet.pdf',
+        ),
+        TaskModel(
+          id: '2',
+          subjectName: 'Mathematics',
+          title: 'Geometry Project',
+          description:
+              'Submit your geometry project report including diagrams.',
+          dueDate: DateTime.now().subtract(const Duration(days: 1)),
+          status: 'Pending',
+        ),
+        TaskModel(
+          id: '3',
+          subjectName: 'Science',
+          title: 'Lab Report',
+          description: 'Write a report on the photosynthesis experiment.',
+          dueDate: DateTime.now().add(const Duration(days: 5)),
+        ),
+        TaskModel(
+          id: '4',
+          subjectName: 'English',
+          title: 'Essay Writing',
+          description: 'Write a 500-word essay on "Climate Change".',
+          dueDate: DateTime.now().add(const Duration(days: 3)),
+        ),
+      ].obs;
 
   // Submission State
   var attachedFiles = <Attachment>[].obs;
@@ -437,11 +444,7 @@ class StudentController extends GetxController {
       ].contains(file.extension?.toLowerCase());
 
       attachedFiles.add(
-        Attachment(
-          path: file.path ?? '',
-          name: file.name,
-          isImage: isImage,
-        ),
+        Attachment(path: file.path ?? '', name: file.name, isImage: isImage),
       );
     }
   }
@@ -472,7 +475,7 @@ class StudentController extends GetxController {
     if (index != -1) {
       tasks[index].status = 'Submitted';
       tasks.refresh();
-      
+
       isSubmitting.value = false;
       Get.back(); // Close screen
       Get.snackbar(
@@ -484,8 +487,8 @@ class StudentController extends GetxController {
         margin: const EdgeInsets.all(16),
       );
     } else {
-       isSubmitting.value = false;
-       Get.snackbar('Error', 'Task not found');
+      isSubmitting.value = false;
+      Get.snackbar('Error', 'Task not found');
     }
   }
 
@@ -502,6 +505,43 @@ class StudentController extends GetxController {
 
   List<TaskModel> getTasksForSubject(String subjectName) {
     return tasks.where((t) => t.subjectName == subjectName).toList();
+  }
+
+  // Performance Data
+  final examScores =
+      [
+        {'subject': 'Mathematics', 'obtained': 85, 'total': 100},
+        {'subject': 'Science', 'obtained': 78, 'total': 100},
+        {'subject': 'English', 'obtained': 92, 'total': 100},
+        {'subject': 'Urdu', 'obtained': 88, 'total': 100},
+        {'subject': 'Islamiyat', 'obtained': 95, 'total': 100},
+      ].obs;
+
+  Map<String, int> get taskStats {
+    final total = tasks.length;
+    final submitted = tasks.where((t) => t.status == 'Submitted').length;
+    final pending = total - submitted;
+    return {'total': total, 'submitted': submitted, 'pending': pending};
+  }
+
+  String get overallPerformanceStatus {
+    // Simple logic: Average score based status
+    if (examScores.isEmpty) return 'N/A';
+
+    double totalObtained = 0;
+    double totalMax = 0;
+
+    for (var score in examScores) {
+      totalObtained += (score['obtained'] as int);
+      totalMax += (score['total'] as int);
+    }
+
+    final percentage = (totalObtained / totalMax) * 100;
+
+    if (percentage >= 90) return 'Excellent';
+    if (percentage >= 80) return 'Good';
+    if (percentage >= 60) return 'Fair';
+    return 'Work Hard';
   }
 
   void openSubjects() {

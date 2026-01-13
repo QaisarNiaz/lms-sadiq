@@ -6,6 +6,7 @@ import 'package:lms/view/dashboard/student/fee_history.dart';
 import 'package:lms/view/dashboard/student/timetable.dart';
 import 'package:lms/view/dashboard/student/subject_details.dart';
 import 'package:lms/view/dashboard/student/attendance_screen.dart';
+import 'package:lms/view/dashboard/student/performance_screen.dart';
 import 'package:lms/widgets/bottomnavbar.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -96,11 +97,15 @@ class StudentDashboard extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _statCard(
-                          'Performance',
-                          'Good',
-                          Colors.blue,
-                          Icons.trending_up,
+                        child: InkWell(
+                          onTap: () => Get.to(() => const PerformanceScreen()),
+                          borderRadius: BorderRadius.circular(20),
+                          child: _statCard(
+                            'Performance',
+                            controller.overallPerformanceStatus,
+                            Colors.blue,
+                            Icons.trending_up,
+                          ),
                         ),
                       ),
                     ],
